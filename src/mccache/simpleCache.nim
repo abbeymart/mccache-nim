@@ -5,7 +5,7 @@
 #    See the file "LICENSE.md", included in this
 #    distribution, for details about the copyright / license.
 # 
-#            Simple In-Memory Cache
+#            Simple In-Memory Cache - Table/Dictionary
 #
 
 import json, tables, times

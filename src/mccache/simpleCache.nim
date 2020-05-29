@@ -8,7 +8,7 @@
 #            Simple In-Memory Cache
 #
 
-import json, httpcore, tables
+import json, httpcore, tables, times
 
 ## Type definition for the cache response
 type
@@ -17,19 +17,21 @@ type
         resCode*: HttpCode
         message*: string
         value*: JsonNode
-  
 
-var responseMessages* = initTable[string, ResponseMessage]()
+var mcCache* = initTable[string, ResponseMessage]()
 
-proc setCache*() = 
+proc setCache*(key: JsonNode; value: JsonNode; expire: uint = 300) = 
     echo ""
 
-proc getCache*() = 
+proc getCache*(key: JsonNode;) = 
     echo ""
 
-proc deleteCache*() = 
+proc deleteCache*(key: JsonNode;) = 
     echo ""
 
-proc clearCache*() = 
-    echo ""
-
+proc clearCache*() : bool = 
+    try:
+        mcCache = initTable[string, ResponseMessage]()
+        result = true
+    except:
+        result = false

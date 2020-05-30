@@ -22,7 +22,7 @@ type
         value*: JsonNode
 
 # Initialise hash-cache tables/objects
-var cacheRecord* = initTable[string, HashValue]()
+# var cacheRecord* = initTable[string, HashValue]()
 var mcCache* = initTable[string, Table[string, HashValue]]()
 
 # hash format
@@ -41,7 +41,7 @@ proc setHashCache*(key: string; hash: string, value: JsonNode; expire: Positive 
         let hashKey = hash & keyCode
         if not mcCache.hasKey(cacheKey):
             mcCache[cacheKey] = CacheValue()
-        if not cacheRecord.hasKey(hashKey):
+        if not mcCache[cacheKey].hasKey(hashKey):
             mcCache[cacheKey][hashKey] = HashValue()
         let hashValue = HashValue(value: value, expire: getTime() + expire.seconds)
         mcCache[cacheKey][hashKey] = hashValue

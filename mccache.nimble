@@ -5,6 +5,7 @@ author        = "Abi Akindele [abbeymart]"
 description   = "mccache package: in-memory caching"
 license       = "MIT"
 srcDir        = "src"
+skipFiles     = @["project.md"]
 
 
 

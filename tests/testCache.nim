@@ -1,5 +1,5 @@
 #
-#              mconnect solutions
+#                   mconnect solutions
 #        (c) Copyright 2020 Abi Akindele (mconnect.biz)
 #
 #    See the file "LICENSE.md", included in this
@@ -8,25 +8,13 @@
 #          Testing for Simple In-Memory Cache - Table/Dictionary
 #
 
-import mccache, json, times, unittest
+import mccache, json, unittest, os
 
-## Type definition for the cache response
-type
-    CacheValue* = ref object
-        value*: JsonNode
-        expire*: Time
-    CacheResponse* = object
-        ok*: bool
-        message*: string
-        value*: JsonNode
-
-# types and test-values
+# variables for test-values
 var
     cacheValue: JsonNode = parseJson("""{"firstName": "Abi", "lastName": "Akindele", "location": "Toronto-Canada"}""")
     cacheKey: string = """{"name": "Tab1", "location": "Toronto"}"""
     expiryTime: Positive = 5 # in seconds
-    # hashKey: string = """{"hash1": "Hash1", "hash2": "Hash2"}"""
-    # res: CacheResponse = CacheResponse()
 
 test "should set and return valid cacheValue":
     let setCache = setCache(cacheKey, cacheValue, expiryTime )
@@ -36,19 +24,26 @@ test "should set and return valid cacheValue":
         echo "get-cache-response: ", res
         check res.ok == true
         check res.value == cacheValue
-        check res.message == "cache task completed successfully"
+        check res.message == "task completed successfully"
+    else:
+        check setCache.ok == false
 
-test "should clear cache and return null/empty value":
-    let setCache = setCache(cacheKey, cacheValue, expiryTime )
-    if setCache.ok:
+test "should clear the cache and return nil/empty value":
+    let cache = clearCache()
+    if cache.ok:
         # get cache content
         let res = getCache(cacheKey)
         echo "get-cache-response: ", res
-        check res.ok == true
-        check res.value == cacheValue
-        check res.message == "cache task completed successfully"
+        check cache.message == "task completed successfully"
+        check res.ok == false
+        check res.value == nil
+        check res.message == "cache info does not exist"
+    else:
+        check cache.ok == false
 
 test "should set and return valid cacheValue -> before timeout/expiration)":
+    # change the expiry time to 2 seconds
+    expiryTime = 2
     let setCache = setCache(cacheKey, cacheValue, expiryTime )
     if setCache.ok:
         # get cache content
@@ -56,9 +51,20 @@ test "should set and return valid cacheValue -> before timeout/expiration)":
         echo "get-cache-response: ", res
         check res.ok == true
         check res.value == cacheValue
-        check res.message == "cache task completed successfully"
+        check res.message == "task completed successfully"
 
-test "should return null value after timeout/expiration":
+test "should return nil value after timeout/expiration":
+    # sleep for 3 seconds to ensure cache expired
+    sleep(3000)
+    # get cache content
+    let res = getCache(cacheKey)
+    echo "get-cache-response: ", res
+    check res.ok == false
+    check res.value == nil
+    check res.message == "cache expired and deleted"
+
+test "should set and return valid cacheValue (repeat prior to deleteCache testing)":
+    expiryTime = 10
     let setCache = setCache(cacheKey, cacheValue, expiryTime )
     if setCache.ok:
         # get cache content
@@ -66,4 +72,19 @@ test "should return null value after timeout/expiration":
         echo "get-cache-response: ", res
         check res.ok == true
         check res.value == cacheValue
-        check res.message == "cache task completed successfully"
+        check res.message == "task completed successfully"
+    else:
+        check setCache.ok == false
+
+test "should delete the cache and return nil/empty value":
+    let cache = deleteCache(cacheKey)
+    if cache.ok:
+        # get cache content
+        let res = getCache(cacheKey)
+        echo "get-cache-response: ", res
+        check cache.message == "task completed successfully"
+        check res.ok == false
+        check res.value == nil
+        check res.message == "cache info does not exist"
+    else:
+        check cache.ok == false

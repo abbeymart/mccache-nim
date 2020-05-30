@@ -1,5 +1,5 @@
 #
-#              mconnect solutions
+#                       mconnect solutions
 #        (c) Copyright 2020 Abi Akindele (mconnect.biz)
 #
 #    See the file "LICENSE.md", included in this
@@ -10,7 +10,7 @@
 
 import json, tables, times
 
-## Type definition for the hash cache response
+## Type definition for the hash / cache values and response
 type
     HashValue* = ref object
         value*: JsonNode
@@ -20,11 +20,12 @@ type
         ok*: bool
         message*: string
         value*: JsonNode
-  
+
 # Initialise hash-cache tables/objects
 var cacheRecord* = initTable[string, HashValue]()
 var mcCache* = initTable[string, Table[string, HashValue]]()
 
+# hash format
 # const abc = {
 #     key: {hashkey: {value: 1, expire: 2}}
 # }
@@ -46,7 +47,7 @@ proc setHashCache*(key: string; hash: string, value: JsonNode; expire: Positive 
         mcCache[cacheKey][hashKey] = hashValue
         return CacheResponse(
                 ok: true,
-                message: "cache task completed successfully",
+                message: "task completed successfully",
                 value: value)
     except:
         return CacheResponse(ok: true, message: getCurrentExceptionMsg())
@@ -64,7 +65,7 @@ proc getHashCache*(key, hash: string;): CacheResponse =
         if mcCache.hasKey(cacheKey) and (mcCache[cacheKey]).hasKey(hashKey) and mcCache[cacheKey][hashKey].expire > getTime():   
             return CacheResponse(
                 ok: true,
-                message: "cache task (delete) completed successfully",
+                message: "task completed successfully",
                 value: mcCache[cacheKey][hashKey].value )
         # Remove expired cache content by hash-key
         elif mcCache.hasKey(cacheKey) and (mcCache[cacheKey]).hasKey(hashKey):
@@ -87,12 +88,12 @@ proc deleteHashCache*(key, hash: string; by: string = "hash"): CacheResponse =
             mcCache.del(cacheKey)
             return CacheResponse(
                 ok: true,
-                message: "task (delete-by-key) completed successfully")
+                message: "task completed successfully")
         elif key != "" and hash != "" and by == "hash" and mcCache.hasKey(cacheKey) and mcCache[cacheKey].hasKey(hashKey):
             mcCache[cacheKey].del(hashKey)
             return CacheResponse(
                 ok: true,
-                message: "task (delete-by-hash) completed successfully")
+                message: "task completed successfully")
         else:
             return CacheResponse(ok: false, message: "cache key is required or cache-key not found")
     except:
@@ -102,6 +103,6 @@ proc clearHashCache*() : CacheResponse =
     try:
         # re-initialise cache (hash-table)
         mcCache = initTable[string, Table[string, HashValue]]()
-        return CacheResponse(ok: true, message: "cache cleared successfully")
+        return CacheResponse(ok: true, message: "task completed successfully")
     except:
         return CacheResponse(ok: false, message: getCurrentExceptionMsg())

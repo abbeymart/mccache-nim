@@ -1,5 +1,5 @@
 #
-#              mconnect solutions
+#                 mconnect solutions
 #        (c) Copyright 2020 Abi Akindele (mconnect.biz)
 #
 #    See the file "LICENSE.md", included in this
@@ -10,7 +10,7 @@
 
 import json, tables, times
 
-## Type definition for the cache response
+## Type definition for the cache value and response
 type
     CacheValue* = ref object
         value*: JsonNode
@@ -34,7 +34,7 @@ proc setCache*(key: string; value: JsonNode; expire: Positive = 300): CacheRespo
         mcCache[cacheKey] = CacheValue(value: value, expire: getTime() + expire.seconds)
         return CacheResponse(
                 ok: true,
-                message: "cache task completed successfully",
+                message: "task completed successfully",
                 value: value)
     except:
             return CacheResponse(ok: false, message: getCurrentExceptionMsg())
@@ -47,7 +47,7 @@ proc getCache*(key: string;): CacheResponse =
         elif mcCache.hasKey(cacheKey) and mcCache[cacheKey].expire > getTime():
             return CacheResponse(
                 ok: true,
-                message: "cache task completed successfully",
+                message: "task completed successfully",
                 value: mcCache[cacheKey].value)
         elif mcCache.hasKey(cacheKey):
             mcCache.del(cacheKey)
@@ -67,7 +67,7 @@ proc deleteCache*(key: string;): CacheResponse =
             mcCache.del(cacheKey)
             return CacheResponse(
                 ok: true,
-                message: "cache task (delete) completed successfully")
+                message: "task completed successfully")
         else:
             return CacheResponse(ok: false, message: "task not completed, cache-key not found")
     except:
@@ -77,6 +77,6 @@ proc clearCache*() : CacheResponse =
     try:
         # re-initialise cache (table)
         mcCache = initTable[string, CacheValue]()
-        return CacheResponse(ok: true, message: "cache cleared successfully")
+        return CacheResponse(ok: true, message: "task completed successfully")
     except:
         return CacheResponse(ok: false, message: getCurrentExceptionMsg())

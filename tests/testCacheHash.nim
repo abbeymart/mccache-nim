@@ -8,7 +8,7 @@
 #     Testing for Hash In-Memory Cache - Hash Table/Dictionary
 #
 
-import mccache, json, unittest, os
+import mccache/hashCache, json, unittest, os
 
 # types and test-values
 var

@@ -8,7 +8,7 @@
 #          Testing for Simple In-Memory Cache - Table/Dictionary
 #
 
-import mccache, json, unittest, os
+import mccache/simpleCache, json, unittest, os
 
 # variables for test-values
 var

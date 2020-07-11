@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.0"
+version       = "0.1.1"
 author        = "Abi Akindele [abbeymart]"
 description   = "mccache package: in-memory caching"
 license       = "MIT"

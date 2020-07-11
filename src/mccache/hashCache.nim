@@ -36,15 +36,18 @@ const keyCode = "mcconnect_20200320_myjoy"
 proc setHashCache*(key: string; hash: string, value: JsonNode; expire: Positive = 300): HashCacheResponse = 
     try:
         if key == "" or hash == "" or value == nil:
-            return HashCacheResponse(ok: false, message: "key, hash and value are required")
+            return HashCacheResponse(ok: false, message: "cache key, hash and value are required")
+        
         let cacheKey = key & keyCode
         let hashKey = hash & keyCode
+        
         if not mcCache.hasKey(cacheKey):
             mcCache[cacheKey] = HashCacheValue()
+        
         if not mcCache[cacheKey].hasKey(hashKey):
             mcCache[cacheKey][hashKey] = HashValue()
-        let hashValue = HashValue(value: value, expire: getTime() + expire.seconds)
-        mcCache[cacheKey][hashKey] = hashValue
+        
+        mcCache[cacheKey][hashKey] = HashValue(value: value, expire: getTime() + expire.seconds)
         return HashCacheResponse(
                 ok: true,
                 message: "task completed successfully",
@@ -54,13 +57,13 @@ proc setHashCache*(key: string; hash: string, value: JsonNode; expire: Positive 
 
 proc getHashCache*(key, hash: string;): HashCacheResponse = 
     try:
-        let cacheKey = key & keyCode
-        let hashKey = hash & keyCode
-
         # Ensure valide cache-key and hash-key
         if key == "" or hash == "":
             return HashCacheResponse(ok: false, message: "cache key and hash are required")
         
+        let cacheKey = key & keyCode
+        let hashKey = hash & keyCode
+
         # get active (non-expired) cache content
         if mcCache.hasKey(cacheKey) and (mcCache[cacheKey]).hasKey(hashKey) and mcCache[cacheKey][hashKey].expire > getTime():   
             return HashCacheResponse(
@@ -78,12 +81,12 @@ proc getHashCache*(key, hash: string;): HashCacheResponse =
 
 proc deleteHashCache*(key, hash: string; by: string = "hash"): HashCacheResponse = 
     try:
-        let cacheKey = key & keyCode
-        let hashKey = hash & keyCode
-
         if key == "" or (hash == "" and by == "hash"):
             return HashCacheResponse(ok: false, message: "key and hash-key are required")
         
+        let cacheKey = key & keyCode
+        let hashKey = hash & keyCode
+
         if key != "" and by == "key" and mcCache.hasKey(cacheKey):
             mcCache.del(cacheKey)
             return HashCacheResponse(
@@ -101,8 +104,9 @@ proc deleteHashCache*(key, hash: string; by: string = "hash"): HashCacheResponse
 
 proc clearHashCache*() : HashCacheResponse = 
     try:
-        # re-initialise cache (hash-table)
-        mcCache = initTable[string, Table[string, HashValue]]()
+        # clear the cache (hash-table)
+        mcCache.clear()
+        
         return HashCacheResponse(ok: true, message: "task completed successfully")
     except:
         return HashCacheResponse(ok: false, message: getCurrentExceptionMsg())

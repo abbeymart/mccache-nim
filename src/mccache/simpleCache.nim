@@ -29,9 +29,12 @@ const keyCode = "mcconnect_20200320_myjoy"
 proc setCache*(key: string; value: JsonNode; expire: Positive = 300): CacheResponse = 
     try:
         if key == "" or value == nil:
-            return CacheResponse(ok: false, message: "key and value are required")
+            return CacheResponse(ok: false, message: "cache key and value are required")
+        
         let cacheKey = key & keyCode
+
         mcCache[cacheKey] = CacheValue(value: value, expire: getTime() + expire.seconds)
+        
         return CacheResponse(
                 ok: true,
                 message: "task completed successfully",
@@ -41,10 +44,12 @@ proc setCache*(key: string; value: JsonNode; expire: Positive = 300): CacheRespo
 
 proc getCache*(key: string;): CacheResponse = 
     try:
-        let cacheKey = key & keyCode
         if key == "":
             return CacheResponse(ok: false, message: "cache key is required")
-        elif mcCache.hasKey(cacheKey) and mcCache[cacheKey].expire > getTime():
+
+        let cacheKey = key & keyCode
+
+        if mcCache.hasKey(cacheKey) and mcCache[cacheKey].expire > getTime():
             return CacheResponse(
                 ok: true,
                 message: "task completed successfully",
@@ -59,10 +64,11 @@ proc getCache*(key: string;): CacheResponse =
 
 proc deleteCache*(key: string;): CacheResponse = 
     try:
-        let cacheKey = key & keyCode
         if key == "":
             return CacheResponse(ok: false, message: "key is required")
 
+        let cacheKey = key & keyCode
+        
         if mcCache.hasKey(cacheKey):
             mcCache.del(cacheKey)
             return CacheResponse(
@@ -75,8 +81,9 @@ proc deleteCache*(key: string;): CacheResponse =
 
 proc clearCache*() : CacheResponse = 
     try:
-        # re-initialise cache (table)
-        mcCache = initTable[string, CacheValue]()
+        # clear the cache (table)
+        mcCache.clear()
+        
         return CacheResponse(ok: true, message: "task completed successfully")
     except:
         return CacheResponse(ok: false, message: getCurrentExceptionMsg())

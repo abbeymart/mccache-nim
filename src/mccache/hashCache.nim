@@ -53,7 +53,7 @@ proc setHashCache*(key: string; hash: string, value: JsonNode; expire: Positive 
                 message: "task completed successfully",
                 value: value)
     except:
-        return HashCacheResponse(ok: true, message: getCurrentExceptionMsg())
+        return HashCacheResponse(ok: false, message: getCurrentExceptionMsg())
 
 proc getHashCache*(key, hash: string;): HashCacheResponse = 
     try:

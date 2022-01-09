@@ -12,18 +12,18 @@ import json, tables, times
 
 ## Type definition for the hash / cache values and response
 type
-    HashValue* = ref object
+    CacheValue* = ref object
         value*: JsonNode
-        expire*: Time
-    HashCacheValue* = Table[string, HashValue]
+        expire*: int64
+    HashCacheValue* = Table[string, CacheValue]
     HashCacheResponse* = object
         ok*: bool
         message*: string
         value*: JsonNode
 
 # Initialise hash-cache tables/objects
-# var cacheRecord* = initTable[string, HashValue]()
-var mcCache* = initTable[string, Table[string, HashValue]]()
+# var cacheRecord* = initTable[string, CacheValue]()
+var mcCache* = initTable[string, HashCacheValue]()
 
 # hash format
 # const abc = {
@@ -33,31 +33,33 @@ var mcCache* = initTable[string, Table[string, HashValue]]()
 # secret keyCode for added security
 const keyCode = "mcconnect_20200320_myjoy"
 
-proc setHashCache*(key: string; hash: string, value: JsonNode; expire: Positive = 300): HashCacheResponse = 
+proc setHashCache*(key: string; hash: string, value: JsonNode; expire: int64 = 300): HashCacheResponse = 
     try:
         if key == "" or hash == "" or value == nil:
-            return HashCacheResponse(ok: false, message: "cache key, hash and value are required")
+            return HashCacheResponse(ok: false, message: "cache key, hash and value are required", value: nil)
         
         let cacheKey = key & keyCode
         let hashKey = hash & keyCode
         
-        if not mcCache.hasKey(cacheKey):
-            mcCache[cacheKey] = HashCacheValue()
+        if not mcCache.hasKey(hashKey):
+            mcCache[hashKey] = HashCacheValue()
         
-        if not mcCache[cacheKey].hasKey(hashKey):
-            mcCache[cacheKey][hashKey] = HashValue()
+        if not mcCache[hashKey].hasKey(cacheKey):
+            mcCache[hashKey][cacheKey] = CacheValue()
         
-        mcCache[cacheKey][hashKey] = HashValue(value: value, expire: getTime() + expire.seconds)
+        mcCache[hashKey][cacheKey] = CacheValue(value: value, expire: toUnix(getTime()) + expire)
         return HashCacheResponse(
                 ok: true,
                 message: "task completed successfully",
-                value: value)
+                value: mcCache[hashKey][cacheKey].value)
     except:
-        return HashCacheResponse(ok: false, message: getCurrentExceptionMsg())
+        return HashCacheResponse(ok: false, 
+                                message: getCurrentExceptionMsg() & " | error creating/setting cache information", 
+                                value: nil)
 
 proc getHashCache*(key, hash: string;): HashCacheResponse = 
     try:
-        # Ensure valide cache-key and hash-key
+        # Ensure valid cache-key and hash-key
         if key == "" or hash == "":
             return HashCacheResponse(ok: false, message: "cache key and hash are required")
         
@@ -65,48 +67,61 @@ proc getHashCache*(key, hash: string;): HashCacheResponse =
         let hashKey = hash & keyCode
 
         # get active (non-expired) cache content
-        if mcCache.hasKey(cacheKey) and (mcCache[cacheKey]).hasKey(hashKey) and mcCache[cacheKey][hashKey].expire > getTime():   
+        if mcCache.hasKey(hashKey) and (mcCache[hashKey]).hasKey(cacheKey) and mcCache[hashKey][cacheKey].expire > toUnix(getTime()):   
             return HashCacheResponse(
                 ok: true,
                 message: "task completed successfully",
-                value: mcCache[cacheKey][hashKey].value )
+                value: mcCache[hashKey][cacheKey].value )
         # Remove expired cache content by hash-key
-        elif mcCache.hasKey(cacheKey) and (mcCache[cacheKey]).hasKey(hashKey):
-            mcCache[cacheKey].del(hashKey)
-            return HashCacheResponse(ok: false, message: "cache expired and deleted")
+        elif mcCache.hasKey(hashKey) and (mcCache[hashKey]).hasKey(cacheKey):
+            mcCache[hashKey].del(cacheKey)
+            return HashCacheResponse(ok: false, message: "cache expired and deleted", value: nil)
         else:
-            return HashCacheResponse(ok: false, message: "cache info does not exist")
+            return HashCacheResponse(ok: false, message: "cache info does not exist", value: nil)
     except:
-        return HashCacheResponse(ok: false, message: getCurrentExceptionMsg())
+        return HashCacheResponse(ok: false, 
+                                message: getCurrentExceptionMsg() & " | error fetching cache information",
+                                value: nil)
 
 proc deleteHashCache*(key, hash: string; by: string = "hash"): HashCacheResponse = 
     try:
-        if key == "" or (hash == "" and by == "hash"):
-            return HashCacheResponse(ok: false, message: "key and hash-key are required")
+        if by == "key" and (hash == "" or key == ""):
+            return HashCacheResponse(ok: false, message: "hash and cache keys are required", value: nil)
         
+        if by == "hash" and hash == "":
+            return HashCacheResponse(ok: false, message: "hash key is required", value: nil)
+
         let cacheKey = key & keyCode
         let hashKey = hash & keyCode
 
-        if key != "" and by == "key" and mcCache.hasKey(cacheKey):
-            mcCache.del(cacheKey)
+        if by == "hash" and mcCache.hasKey(hashKey):
+            mcCache.del(hashKey)
             return HashCacheResponse(
                 ok: true,
-                message: "task completed successfully")
-        elif key != "" and hash != "" and by == "hash" and mcCache.hasKey(cacheKey) and mcCache[cacheKey].hasKey(hashKey):
-            mcCache[cacheKey].del(hashKey)
+                message: "task completed successfully",
+                value: nil)
+        elif by == "key" and mcCache.hasKey(hashKey) and mcCache[hashKey].hasKey(cacheKey):
+            mcCache[hashKey].del(cacheKey)
             return HashCacheResponse(
                 ok: true,
-                message: "task completed successfully")
+                message: "task completed successfully",
+                value: nil)
         else:
-            return HashCacheResponse(ok: false, message: "cache key is required or cache-key not found")
+            return HashCacheResponse(ok: false, 
+                                    message: "cache-record-value not found", 
+                                    value: nil)
     except:
-        return HashCacheResponse(ok: false, message: getCurrentExceptionMsg())
+        return HashCacheResponse(ok: false, 
+                                message: getCurrentExceptionMsg() & " | error deleting cache information", 
+                                value: nil)
 
 proc clearHashCache*() : HashCacheResponse = 
     try:
         # clear the cache (hash-table)
         mcCache.clear()
         
-        return HashCacheResponse(ok: true, message: "task completed successfully")
+        return HashCacheResponse(ok: true, message: "task completed successfully", value: nil)
     except:
-        return HashCacheResponse(ok: false, message: getCurrentExceptionMsg())
+        return HashCacheResponse(ok: false, 
+                                message: getCurrentExceptionMsg() & " | error clearing cache", 
+                                value: nil)

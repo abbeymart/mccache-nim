@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.2"
+version       = "0.2.0"
 author        = "Abi Akindele [abbeymart]"
 description   = "mccache package: in-memory caching - patched"
 license       = "MIT"
@@ -11,4 +11,4 @@ skipFiles     = @["project.md"]
 
 # Dependencies
 
-requires "nim >= 1.2.0"
+requires "nim >= 1.6.2"

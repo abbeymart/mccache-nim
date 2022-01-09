@@ -1,6 +1,12 @@
-# Historical logs
+# Historical logs | github.com/abbeymart/mccache-nim
 
 - TODO: update documentation
+
+## Version 0.2.0
+
+- Release date: Jan 08, 2022
+- Refactor cache-methods
+
 
 ## Version 0.1.0
 

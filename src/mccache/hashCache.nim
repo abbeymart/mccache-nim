@@ -12,18 +12,18 @@ import json, tables, times
 
 ## Type definition for the hash / cache values and response
 type
-    CacheValue* = ref object
-        value*: JsonNode
-        expire*: int64
-    HashCacheValue* = Table[string, CacheValue]
-    HashCacheResponse* = object
+    CacheValue = ref object
+        value: JsonNode
+        expire: int64
+    HashCacheValue = Table[string, CacheValue]
+    HashCacheResponse = object
         ok*: bool
         message*: string
         value*: JsonNode
 
 # Initialise hash-cache tables/objects
-# var cacheRecord* = initTable[string, CacheValue]()
-var mcCache* = initTable[string, HashCacheValue]()
+# var mcCache = initTable[string, HashCacheValue]()
+var mcCache: Table[string, HashCacheValue]
 
 # hash format
 # const abc = {
@@ -61,7 +61,7 @@ proc getHashCache*(key, hash: string;): HashCacheResponse =
     try:
         # Ensure valid cache-key and hash-key
         if key == "" or hash == "":
-            return HashCacheResponse(ok: false, message: "cache key and hash are required")
+            return HashCacheResponse(ok: false, message: "cache key and hash are required", value: nil)
         
         let cacheKey = key & keyCode
         let hashKey = hash & keyCode

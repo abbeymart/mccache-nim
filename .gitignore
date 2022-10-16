@@ -1,5 +1,6 @@
 project.md
 *.exe
-mccache.exe
+*.app
+.DS_Store
 
 config/secure

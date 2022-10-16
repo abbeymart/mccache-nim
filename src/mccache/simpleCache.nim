@@ -12,16 +12,17 @@ import json, tables, times
 
 ## Type definition for the cache value and response
 type
-    CacheValue* = ref object
-        value*: JsonNode
-        expire*: int64
-    CacheResponse* = object
+    CacheValue = ref object
+        value: JsonNode
+        expire: int64
+    CacheResponse = object
         ok*: bool
         message*: string
         value*: JsonNode
 
 # Initialise cache table/object
-var mcCache* = initTable[string, CacheValue]()
+# var mcCache* = initTable[string, CacheValue]()
+var mcCache: Table[string, CacheValue]
 
 # secret keyCode for added security
 const keyCode = "mcconnect_20200320_myjoy"
@@ -37,7 +38,7 @@ proc setCache*(key: string; value: JsonNode; expire: Positive = 300): CacheRespo
         
         return CacheResponse(ok: true, message: "task completed successfully", value: value)
     except:
-            return CacheResponse(ok: false, message: getCurrentExceptionMsg() & " | error creating/setting cache information", value: nil)
+        return CacheResponse(ok: false, message: getCurrentExceptionMsg() & " | error creating/setting cache information", value: nil)
 
 proc getCache*(key: string;): CacheResponse = 
     try:

@@ -2,11 +2,15 @@
 
 - TODO: update documentation
 
+## Version 0.3.0
+
+- Release date: Oct 15, 2022
+- Refactored-cache-vars-params-v0.3.0
+
 ## Version 0.2.0
 
 - Release date: Jan 08, 2022
 - Refactor cache-methods
-
 
 ## Version 0.1.0
 
